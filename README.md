@@ -82,6 +82,6 @@ Easily customizable — edit the package list in setup.sh to fit your workflow
 
 Can be used for VM bootstrapping, WSL setup, or lab environments
 
-🧑‍💻 Author
+🧑‍💻
 Created by SourMitten170
 Made to make Ubuntu setup fast, clean, and painless.
