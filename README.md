@@ -50,7 +50,7 @@ Cleans up unnecessary packages
 Verifies all tools are installed
 
 🔹 LNFinal Setup (Option 2)
-Lightweight setup for your LNFinal project:
+Lightweight setup for use with SSM (https://github.com/SourMitten/SSM):
 
 Ensures python3-pip is installed
 
