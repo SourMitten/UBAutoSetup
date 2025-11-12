@@ -2,7 +2,7 @@
 # UBAutoSetup - Quick Ubuntu setup automation
 # Run with: sudo bash setup.sh
 
-set -e  # Stop on first error
+set -e
 
 echo "==== [UBAutoSetup] Ubuntu Setup Assistant ===="
 
@@ -15,7 +15,6 @@ fi
 check_install() {
   local name="$1"
   local cmd="$2"
-
   if ! command -v $cmd &>/dev/null; then
     echo "[ERROR] $name failed to install or not found."
     exit 10
@@ -24,75 +23,100 @@ check_install() {
   fi
 }
 
+# Install system packages for Full mode (exclude LNFinal libs)
+install_full_packages() {
+  echo "---- Installing Full system packages ----"
+  apt update -y && apt upgrade -y
+  apt install -y \
+    python3 python3-pip git curl wget vim htop net-tools unzip build-essential software-properties-common
+  apt autoremove -y
+  apt clean
+}
+
+# Install Python packages for LNFinal
+install_lnfinal_packages() {
+  echo "---- Installing LNFinal Python packages ----"
+  pip3 install --upgrade pip
+  pip3 install psutil rich keyboard speedtest-cli
+}
+
+# Install extra Python packages for Ext mode
+install_ext_only_packages() {
+  echo "---- Installing extra Python packages for Ext mode ----"
+  pip3 install requests numpy pandas matplotlib flask beautifulsoup4
+}
+
 # Menu prompt
 echo
 echo "Select setup mode:"
-echo "  [1] Full Setup  - Installs all essential dev tools"
-echo "  [2] LNFinal Setup - Installs pip, psutil, rich, and keyboard only"
+echo "  [1] LNFinal Setup  - Minimal Python libs + speedtest-cli"
+echo "  [2] Full Setup     - Essential dev tools only"
+echo "  [3] Ext. Setup     - Full Setup + LNFinal + extra little greebly libraries = Extended Setup!"
 echo
-read -p "Enter your choice (1 or 2): " CHOICE
+read -p "Enter your choice (1, 2, or 3): " CHOICE
 echo
 
-# Function to install Python packages
-install_python_packages() {
-  pip3 install --upgrade pip || { echo "[ERROR] Failed to upgrade pip."; exit 12; }
-  pip3 install psutil rich keyboard || { echo "[ERROR] Failed to install psutil, rich, or keyboard."; exit 13; }
-}
-
-# Run based on selection
 case "$CHOICE" in
   1)
-    echo "---- [Full Setup] Starting full environment setup ----"
-    apt update -y && apt upgrade -y
+    echo "---- [LNFinal Setup] ----"
+    apt update -y
+    apt install -y python3-pip || { echo "[ERROR] Failed to install python3-pip."; exit 11; }
+    install_lnfinal_packages
 
-    apt install -y \
-      python3 \
-      python3-pip \
-      git \
-      curl \
-      wget \
-      vim \
-      htop \
-      net-tools \
-      unzip \
-      build-essential \
-      software-properties-common || { echo "[ERROR] Failed installing base packages."; exit 20; }
+    check_install "Python 3" python3
+    check_install "pip3" pip3
+    python3 -c "import psutil, rich, keyboard, speedtest" 2>/dev/null || { echo "[ERROR] Python packages failed to import."; exit 14; }
 
-    apt autoremove -y
-    apt clean
+    echo "---- [LNFinal Setup] Completed ----"
+    ;;
 
-    # Install Python packages including keyboard
-    install_python_packages
-
-    # Verify installs
+  2)
+    echo "---- [Full Setup] ----"
+    install_full_packages
+    # Full mode does NOT install LNFinal Python libs
     check_install "Python 3" python3
     check_install "pip3" pip3
     check_install "Git" git
     check_install "Curl" curl
     check_install "Vim" vim
-    python3 -c "import psutil, rich, keyboard" 2>/dev/null || { echo "[ERROR] psutil, rich, or keyboard failed to import."; exit 14; }
 
-    echo "---- [Full Setup] Completed successfully ----"
+    echo "---- [Full Setup] Completed ----"
     ;;
-  2)
-    echo "---- [LNFinal Setup] Installing Python dependencies ----"
-    apt update -y
 
-    if ! command -v pip3 &>/dev/null; then
-      apt install -y python3-pip || { echo "[ERROR] Failed to install python3-pip."; exit 11; }
-    fi
+  3)
+    echo "---- [Ext. Setup] ----"
+    echo "Full Setup + LNFinal + extra little greebly libraries + handy CLI tools = Extended Setup!"
 
-    # Install Python packages including keyboard
-    install_python_packages
+    # Step 1: Full system packages
+    install_full_packages
+    
+    # Step 2: LNFinal Python packages
+    install_lnfinal_packages
+    
+    # Step 3: Ext. only Python packages
+    install_ext_only_packages
 
+    # Step 4: Extra CLI tools for Ext mode
+    echo "---- Installing extra CLI tools for Ext mode ----"
+    apt install -y tmux tree nmap jq
+
+    # Verification
     check_install "Python 3" python3
     check_install "pip3" pip3
-    python3 -c "import psutil, rich, keyboard" 2>/dev/null || { echo "[ERROR] psutil, rich, or keyboard failed to import."; exit 14; }
+    check_install "Git" git
+    check_install "Curl" curl
+    check_install "Vim" vim
+    check_install "tmux" tmux
+    check_install "tree" tree
+    check_install "nmap" nmap
+    check_install "jq" jq
+    python3 -c "import psutil, rich, keyboard, speedtest, requests, numpy, pandas, matplotlib, flask, bs4" 2>/dev/null || { echo "[ERROR] Python packages failed to import."; exit 14; }
 
-    echo "---- [LNFinal Setup] Completed successfully ----"
+    echo "---- [Ext. Setup] Completed ----"
     ;;
+
   *)
-    echo "[ERROR] Invalid selection. Please enter 1 or 2."
+    echo "[ERROR] Invalid selection. Enter 1, 2, or 3."
     exit 2
     ;;
 esac
