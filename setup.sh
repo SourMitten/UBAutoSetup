@@ -48,7 +48,6 @@ install_lnfinal_packages() {
   # --break-system-packages is required on Ubuntu 23.04+ (PEP 668 enforcement) 
   # to allow global pip installations. We use this flag intentionally to keep 
   # SSM and system tools globally available without relying on virtual environments.
-  pip3 install --upgrade pip --break-system-packages
   pip3 install psutil rich keyboard speedtest-cli --break-system-packages
 }
 
